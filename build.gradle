@@ -1,0 +1,41 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.13'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.openjfx:javafx-controls:21'
+    implementation 'org.openjfx:javafx-fxml:21'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+javafx {
+    version = '21'
+    modules = ['javafx.controls', 'javafx.fxml', 'javafx.web']
+}
+test {
+    useJUnitPlatform()
+}
+
+application {
+    mainClass = 'edu.vt.javadev.adventure.AdventureApp'
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'edu.vt.javadev.adventure.AdventureApp'
+        )
+    }
+}

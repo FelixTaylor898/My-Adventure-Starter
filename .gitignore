@@ -1,0 +1,16 @@
+# Ignore Gradle files
+.gradle/
+
+# Ignore build outputs
+/out/
+/build/
+
+# OS-specific files
+.DS_Store
+
+# Ignore IntelliJ IDEA files
+.idea/
+*.iml
+
+# Ignore VS Code files
+.vscode/
