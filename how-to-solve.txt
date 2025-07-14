@@ -1,0 +1,62 @@
+01. Input your name
+02. Go east to living-room
+03. turn-on flashlight
+04. read diary and note down the combination. It is randomized each game.
+(alternatively, just read the system outputs for the combination)
+05. Go west to foyer
+06. open bedroom-door and go north to bedroom
+07. unlock jewelry-box and enter combination, dashes included
+08. open jewelry-box and take key
+09. Go south to foyer
+10. unlock and open cellar-door
+11. Go west to cellar
+12. turn-on flashlight
+13. take record
+14. open breaker-box and pull lever
+15. Go east to foyer and east to living-roomDo
+16. place record
+17. turn-on turntable
+18. Go west to foyer
+19. open front-door
+20. exit
+
+================================
+
+Game breakdown:
+
+Start in the foyer.
+
+diary
+* The diary is in the living-room to the east of the foyer.
+* You must turn on the flashlight before you can read the diary. Reading the diary will automatically turn off the flashlight.
+* Reading the diary will display a randomized combination. This combination will also be printed in the system output upon startup.
+
+jewelry-box
+* The jewelry-box is in the bedroom to the north of the foyer.
+* Input the combination from the diary to unlock the jewelry-box. Include dashes.
+* jewelry-box contains the key to the cellar.
+
+cellar
+* cellar is to the west of the foyer
+* cellar-door is locked, key is in the jewelry-box
+* cellar will be too dark to interact with anything until the flashlight is turned on
+
+breaker-box
+* Located in the cellar to the west of the foyer
+* open to reveal the lever
+* pull the lever to turn on power
+
+record
+* Located in the cellar to the west of the foyer
+* must take and place on the turntable
+
+turntable
+* Located in the living-room to the east of the foyer
+* You must return power to the house to turn on the turntable. Pull the lever in the cellar to bring back power.
+* You must place a record on the turntable before you can play it.
+* Playing the record will free the ghost, and you will no longer see the spooky messages.
+
+front-door
+* To the south of the foyer
+* Will not open until the record is played
+* Open and exit in order to win

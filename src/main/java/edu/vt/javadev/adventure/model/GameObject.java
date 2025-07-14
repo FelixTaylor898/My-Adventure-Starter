@@ -1,10 +1,24 @@
 package edu.vt.javadev.adventure.model;
 
+import edu.vt.javadev.adventure.Message;
+
+/**
+ * Project 4 GameObject class.
+ * @author Felix Taylor
+ */
 public class GameObject {
-    public final String name;
-    public String description;
+
+    // ==========================================================
+    // Fields
+    // ==========================================================
+
+    private String name;
+    private String description;
     private GameObject parent;
-    private String article = "a";
+
+    // ==========================================================
+    // Constructors
+    // ==========================================================
 
     // Single argument constructor
     public GameObject(String name) {
@@ -12,27 +26,32 @@ public class GameObject {
     }
 
     public GameObject(String name, String description) {
+        setName(name);
+        setDescription(description);
+        World.map.put(name, this); // Automatically add the object to the map
+    }
+
+    // ==========================================================
+    // Getters & setters
+    // ==========================================================
+
+    public void setDescription(String description) {
+        if (description == null) throw new IllegalArgumentException("description cannot be null");
+        this.description = description;
+    }
+
+    private void setName(String name) {
+        if (World.map.containsKey(name)) {
+            throw new IllegalArgumentException("A game object with the name '" + name + "' already exists in the map.");
+        }
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Name cannot be null or empty.");
         }
         if (!name.matches("^[a-z]+(-[a-z]+)*$")) {
             throw new IllegalArgumentException("Name must be in kebab-case (lowercase letters and dashes separating words).");
         }
-        if (description == null) {
-            throw new IllegalArgumentException("Description cannot be null.");
-        }
-        if (World.map.containsKey(name)) {
-            throw new IllegalArgumentException("A game object with the name '" + name + "' already exists in the map.");
-        }
-
         this.name = name;
-        this.description = description;
-        World.map.put(name, this); // Automatically add the object to the map
     }
-
-    // ==========================================================
-    // Getters and setters
-    // ==========================================================
 
     public String getName() {
         return name;
@@ -42,24 +61,12 @@ public class GameObject {
         return description;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public GameObject getParent() {
         return parent;
     }
 
     public void setParent(GameObject parent) {
         this.parent = parent;
-    }
-
-    public String getArticle() {
-        return article;
-    }
-
-    public void setArticle(String article) {
-        this.article = article;
     }
 
     // ==========================================================
@@ -71,19 +78,25 @@ public class GameObject {
     }
 
     public String capTheName() {
-        return capitalize(theName());
+        return World.capitalize(theName());
     }
 
     public String aName() {
-        return article + " " + name;
+
+        if (name.endsWith("s")) {
+            return name;
+        }
+
+        char firstChar = Character.toLowerCase(name.charAt(0));
+        if ("aeiou".indexOf(firstChar) >= 0) {
+            return "an " + name;
+        }
+
+        return "a " + name;
     }
 
     public String capAName() {
-        return capitalize(aName());
-    }
-
-    public String capitalize(String string) {
-        return string.substring(0, 1).toUpperCase() + string.substring(1);
+        return World.capitalize(aName());
     }
 
     // ==========================================================
@@ -106,15 +119,26 @@ public class GameObject {
     // ==========================================================
 
     public void examine() {
-        if (description == null || description.isEmpty()) {
-            World.currentMessage = "You see nothing unusual about " + theName() + ".";
+        boolean emptyDescription = description.isEmpty();
+        boolean emptyStateDescription = getStateDescription().isEmpty();
+        if (!emptyDescription && !emptyStateDescription) {
+            World.currentMessage = getDescription() + " " + getStateDescription();
+        } else if (emptyDescription && !emptyStateDescription) {
+            World.currentMessage = getStateDescription();
+        }
+        else if (emptyDescription) {
+            World.currentMessage = Message.examineNothingSpecial(this);
         } else {
             World.currentMessage = getDescription();
         }
     }
 
     public void search() {
-        World.currentMessage = "You search " + theName() + ", but you don't find anything interesting.";
+        World.currentMessage = Message.searchNothing(this);
+    }
+
+    public String getStateDescription() {
+        return "";
     }
 }
 

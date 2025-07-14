@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.0.13'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+
 }
 
 repositories {
@@ -11,6 +13,7 @@ repositories {
 dependencies {
     implementation 'org.openjfx:javafx-controls:21'
     implementation 'org.openjfx:javafx-fxml:21'
+    implementation 'org.junit.jupiter:junit-jupiter:5.8.1'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 }
 
@@ -39,3 +42,4 @@ jar {
         )
     }
 }
+mainClassName = 'edu.vt.javadev.adventure.AdventureApp'

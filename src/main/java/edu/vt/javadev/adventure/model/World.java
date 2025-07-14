@@ -1,30 +1,19 @@
 package edu.vt.javadev.adventure.model;
 
+import edu.vt.javadev.adventure.Message;
+
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * The World class holds global variables and methods that can be used by any object in the game.
- *
- * Global variables:
- * - map: the world map is a mapping from strings to game objects. The string are the unique names
- *        of the game objects and stored in the name field of the game object.
- * - player: the player character in the adventure game (the avatar of the person playing the game)
- * - root: the root game object in the game tree. This object does not represent any object in the game world.
- *          It is a container, and it directly contains all rooms in the game.
- * - startRoom: this is the room in which the player begins the game. [TODO Do we really need this ??]
- * - roomName: this is a string containing the room name to be printed after each turn. This will typically be
- *              the name of the room that the player resides in during that turn
- * - roomDescription: this is the description of the room that the player currently resides in. The room
- *                     description contains a short description of the room, and a (possibly recursive) list of
- *                     all pertinent game objects in that room.
- * - currentMessage: This is the current message that is given at the end of each turn based on the action
- *                   the player takes. The roomName, roomDescription, and currentMessage are printed in that order.
- *                   The roomName is printed in a Label object, the roomDescription is printed in a WebView,
- *                   and the currentMessage is printed in a Label object.
+ * Project 4 World class.
+ * @author Felix Taylor
  */
 public class World {
+
+    private static boolean isHaunted;
+    private static boolean hasPower;
+    private static Light flashlight;
 
     // ----------------------------------------------------------
     // Global variables that hold strings to be used by the View
@@ -62,15 +51,6 @@ public class World {
     /*
        The player object.
      */
-
-    /*
-        The starting room. This will be declared here, but it will be initialized
-        in the constructor of the MyGame class, which is the class that creates
-        the entire game tree structure. [TODO Do we really need this as a global ??]
-     */
-    public static Room startRoom;
-
-    // TODO Figure out how to give the player a proper name.
     public static final Person player = new Person("player");
 
     /*
@@ -78,16 +58,45 @@ public class World {
         you don't want to introduce an object into the game world until
         a particular point in the game. The nothing object is directly
         under the root object. It serves as a holder for objects that you
-        do not yet want to be visible in your game world. [TODO Do we really need this as a global ??]
+        do not yet want to be visible in your game world.
      */
-    public static Container nothing = new Container("nothing");
+    private static final Container nothing = new Container("nothing");
+
+    // ------------------------------------------------------
+    // Getters & setters
+    // ------------------------------------------------------
+
+    public static Light getFlashlight() {
+        return flashlight;
+    }
+
+    public static void setFlashlight(Light flashlight) {
+        World.flashlight = flashlight;
+    }
+
+    public static boolean hasPower() {
+        return hasPower;
+    }
+
+    public static boolean isHaunted() {
+        return isHaunted;
+    }
+
+    public static void setHaunted(boolean isHaunted) {
+        World.isHaunted = isHaunted;
+    }
+
+    public static void setPower(boolean hasPower) {
+        World.hasPower = hasPower;
+        World.currentMessage += hasPower ? " " + Message.hasPower : " " + Message.noPower;
+    }
 
     // ------------------------------------------------------
     // Static methods
     // ------------------------------------------------------
 
-    public static void getStartRoom(Room room) {
-        startRoom = room;
+    public static String capitalize(String string) {
+        return string.substring(0, 1).toUpperCase() + string.substring(1);
     }
 
     public static Room getCurrentRoom() {
@@ -112,6 +121,7 @@ public class World {
         destination.addChild(player);
         currentMessage = "";
     }
+
     public static void moveItemToPlayer(Item item) {
         if (item.getParent() instanceof Container container) {
             container.removeChild(item);
@@ -119,6 +129,24 @@ public class World {
         } else {
             throw new IllegalStateException("Item not moved; original parent was not a container: " + item.getParent().getName());
         }
+    }
+
+    /**
+     * Adds object to "nothing" container
+     *
+     * @param sacrifice GameObject
+     */
+    public static void feedToTheVoid(GameObject sacrifice) {
+        nothing.addChild(sacrifice);
+    }
+
+    /**
+     * Checks if object belongs to "nothing" container
+     * @param go GameObject
+     * @return boolean
+     */
+    public static boolean belongsToTheVoid(GameObject go) {
+        return nothing.has(go);
     }
 
     /**
@@ -144,7 +172,29 @@ public class World {
         roomName = "";
         roomDescription = "";
         currentMessage = "";
-        startRoom = null;
+        flashlight = null;
     }
 
+    /**
+     * Convert a string into an associated room.
+     *
+     * @param noun String
+     * @return associated Room
+     */
+    public static Room findRoom(String noun) {
+        GameObject object = map.get(noun);
+        return object instanceof Room r ? r : null;
+    }
+
+    public static boolean flashlightOn() {
+        return flashlight != null && flashlight.isOn();
+    }
+
+    public static void exit() {
+        if (!World.getCurrentRoom().equals(World.map.get("foyer"))) {
+            currentMessage = Message.exitCant;
+        } else {
+            World.getCurrentRoom().goDir("south");
+        }
+    }
 }

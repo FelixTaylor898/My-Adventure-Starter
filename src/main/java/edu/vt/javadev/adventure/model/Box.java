@@ -2,12 +2,15 @@ package edu.vt.javadev.adventure.model;
 
 import edu.vt.javadev.adventure.Message;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Project 4 Door class.
- *
+ * Project 4 Box class.
  * @author Felix Taylor
  */
-public class Door extends GameObject implements Openable, Lockable {
+
+public class Box extends Container implements Lockable, Openable {
 
     // ==========================================================
     // Fields
@@ -15,39 +18,27 @@ public class Door extends GameObject implements Openable, Lockable {
 
     private boolean isOpen;
     private boolean isLocked;
-
-    /*
-     * This is the key that the player must have
-     * in their inventory in order to unlock the door.
-     */
     private Item withKey;
 
     // ==========================================================
     // Constructors
     // ==========================================================
 
-    public Door(String name) {
+    public Box(String name) {
         super(name);
     }
 
-    public Door(String name, Item key) {
+    public Box(String name, Item key) {
         super(name);
-        setWithKey(key);
+        withKey = key;
     }
 
     // ==========================================================
     // Getters & setters
     // ==========================================================
 
-    public Item getWithKey() {
-        return withKey;
-    }
-
-    // Getters for isOpen and isLocked
-
-    @Override
-    public boolean isOpen() {
-        return isOpen;
+    public void setWithKey(Item withKey) {
+        this.withKey = withKey;
     }
 
     @Override
@@ -55,29 +46,70 @@ public class Door extends GameObject implements Openable, Lockable {
         return isLocked;
     }
 
-    // Setters for isOpen and isLocked that do not require checks
-    // To be used during game initialization
-
-    public void setOpen(boolean open) {
-        isOpen = open;
+    public void setOpen(boolean setOpen) {
+        this.isOpen = setOpen;
     }
 
-    public void setLocked(boolean locked) {
-        isLocked = locked;
+    public void setLocked(boolean setLocked) {
+        this.isLocked = setLocked;
     }
 
-    // Setter for withKey
+    @Override
+    public boolean isOpen() {
+        return isOpen;
+    }
 
-    public void setWithKey(Item key) {
-        if (key == null) throw new IllegalArgumentException("key cannot be null");
-        withKey = key;
+    public Item getWithKey() {
+        return withKey;
     }
 
     // ==========================================================
     // Actions
     // ==========================================================
 
-    // Open and Close methods
+    @Override
+    public void lock() {
+        if (isLocked) {
+            World.currentMessage = Message.lockAlready(this);
+            return;
+        }
+        if (noKey()) {
+            World.currentMessage = Message.lockCant(this);
+            return;
+        }
+        if (isOpen) {
+            World.currentMessage = Message.lockNotYetClosed(this);
+            return;
+        }
+        if (!World.player.has(withKey)) {
+            World.currentMessage = Message.lockNotYetKey(this, withKey);
+            return;
+        }
+        World.currentMessage = Message.lockOkay(this);
+        isLocked = true;
+    }
+
+    @Override
+    public void unlock() {
+        if (noKey()) {
+            World.currentMessage = Message.unlockCant(this);
+            return;
+        }
+
+        if (!isLocked) {
+            World.currentMessage = Message.unlockAlready(this);
+            return;
+        }
+
+        if (!World.player.has(withKey)) {
+            World.currentMessage = Message.unlockNotYetKey(this, withKey);
+            return;
+        }
+
+        // All checks have passed, you may unlock the door.
+        World.currentMessage = Message.unlockOkay(this);
+        isLocked = false;
+    }
 
     @Override
     public void open() {
@@ -85,13 +117,15 @@ public class Door extends GameObject implements Openable, Lockable {
             World.currentMessage = Message.openAlready(this);
             return;
         }
+
         if (isLocked) {
             World.currentMessage = Message.openNotYetUnlocked(this);
             return;
         }
+
         // All check have passed; the door may be opened.
-        World.currentMessage = Message.openOkay(this);
         isOpen = true;
+        World.currentMessage = Message.openOkay(this) + (isEmpty() ? "" : " " + getContentsDescription());
     }
 
     @Override
@@ -104,46 +138,27 @@ public class Door extends GameObject implements Openable, Lockable {
         isOpen = false;
     }
 
-    // Lock and Unlock methods
-
     @Override
-    public void lock() {
-        if (noKey()) {
-            World.currentMessage = Message.lockCant(this);
-            return;
+    public void examine() {
+        String str = getDescription();
+        if (!str.isEmpty()) {
+            str += " ";
         }
-        if (isLocked) {
-            World.currentMessage = Message.lockAlready(this);
-            return;
+        str += getStateDescription();
+        if (isOpen() && !isEmpty()) {
+            str += " " + getContentsDescription();
         }
-        if (isOpen) {
-            World.currentMessage = Message.lockNotYetClosed(this);
-            return;
-        }
-
-        if (!World.player.has(withKey)) {
-            World.currentMessage = Message.lockNotYetKey(this, withKey);
-            return;
-        }
-
-        // All checks have passed, you may lock the door.
-        World.currentMessage = Message.lockOkay(this);
-        isLocked = true;
+        World.currentMessage = str;
     }
 
     @Override
-    public void unlock() {
-        if (!isLocked) {
-            World.currentMessage = Message.unlockAlready(this);
+    public void search() {
+        if (isLocked()) {
+            World.currentMessage = Message.searchCantLocked(this);
             return;
         }
-        if (!World.player.has(withKey)) {
-            World.currentMessage = Message.unlockNotYetKey(this, withKey);
-            return;
-        }
-        // All checks have passed, you may unlock the door.
-        World.currentMessage = Message.unlockOkay(this);
-        isLocked = false;
+        open();
+        super.search();
     }
 
     // ==========================================================
@@ -158,12 +173,19 @@ public class Door extends GameObject implements Openable, Lockable {
     public String getStateDescription() {
         if (isOpen()) {
             return capTheName() + " is open.";
-        } else if (noKey()) {
+        } if (noKey()) {
             return capTheName() + " is closed.";
         } else if (isLocked()) {
             return capTheName() + " is closed and locked.";
-        } else {
-            return capTheName() + " is closed but unlocked.";
-        }
+        } else return capTheName() + " is closed but unlocked.";
+    }
+
+    /**
+     * Return box's contents only if open.
+     * @return List of box's contents
+     */
+    @Override
+    public List<GameObject> visibleContents() {
+        return isOpen() ? children : new ArrayList<>();
     }
 }

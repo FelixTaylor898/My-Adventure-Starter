@@ -1,6 +1,10 @@
 package edu.vt.javadev.adventure.model;
 
+import edu.vt.javadev.adventure.Message;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Room extends Container {
@@ -23,11 +27,16 @@ public class Room extends Container {
     // ==========================================================
 
     public void setRoomDir(String direction, Room room) {
+        if (direction == null || direction.isEmpty() || room == null) throw new IllegalArgumentException();
         roomMap.put(direction, room);
     }
+
     public void setDoorDir(String direction, Door door) {
+        if (direction == null || direction.isEmpty() || door == null) throw new IllegalArgumentException();
         doorMap.put(direction, door);
+        addChild(door);
     }
+
     // ==========================================================
     // Actions
     // ==========================================================
@@ -36,6 +45,26 @@ public class Room extends Container {
         World.roomName = toTitleCase(getName());
         World.roomDescription = roomDescription();
     }
+
+    public void enter(String noun) {
+        Room destination = World.findRoom(noun);
+        if (destination == null) {
+            World.currentMessage = Message.notARoom(noun);
+        } else if (destination.equals(World.getCurrentRoom())) {
+            World.currentMessage = Message.alreadyInRoom(destination);
+        }  else {
+            String direction = World.getCurrentRoom().findDirection(destination);
+            if (direction == null) {
+                World.currentMessage = Message.cantGoFromHere(destination);
+            } else {
+                World.getCurrentRoom().goDir(direction);
+            }
+        }
+    }
+
+    // ==========================================================
+    // Helpers
+    // ==========================================================
 
     public String roomDescription() {
         return "<p>" +
@@ -67,8 +96,8 @@ public class Room extends Container {
     }
 
     public void goDir(String direction) {
-        if (!roomMap.containsKey(direction) || roomMap.get(direction) == null) {
-            World.currentMessage = "You can't go " + direction + " from here.";
+        if (!roomMap.containsKey(direction)) {
+            World.currentMessage = Message.cantGoDirection(direction);
             return;
         }
         Room destRoom = roomMap.get(direction);
@@ -78,5 +107,18 @@ public class Room extends Container {
             return;
         }
         World.movePlayer(destRoom);
+    }
+
+    private String findDirection(Room room) {
+        for (Map.Entry<String, Room> entry : roomMap.entrySet()) {
+            if (entry.getValue().equals(room)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
+    public boolean equals(Room other) {
+        return this.getName().equals(other.getName());
     }
 }
